@@ -1,0 +1,84 @@
+Title,Description,Status,Priority,Labels
+"🏗️ Epic 1: Fundación — Setup del proyecto","Setup inicial del monorepo: tooling, base de datos, configuración",Todo,Urgent,Epic 1 - Fundación
+"1.1 Inicializar monorepo","pnpm workspace + Turborepo + package.json raíz con scripts. Estructura: apps/api, apps/web, packages/shared",Todo,High,Epic 1 - Fundación
+"1.2 Setup NestJS backend","Crear apps/api con NestJS. Configurar main.ts (CORS, prefijo /api, ValidationPipe)",Todo,High,Epic 1 - Fundación
+"1.3 Setup Next.js frontend","Crear apps/web con Next.js 15 App Router. Tailwind + shadcn/ui + globals.css",Todo,High,Epic 1 - Fundación
+"1.4 Schema Prisma + PostgreSQL","Escribir prisma/schema.prisma: User, Session, Account, Verification, Product, Article, BlogConnection, Subscription, GenerationJob",Todo,High,Epic 1 - Fundación
+"1.5 Paquete compartido (@cata/shared)","Crear packages/shared con tipos TypeScript y Zod schemas compartidos entre API y frontend",Todo,High,Epic 1 - Fundación
+"1.6 Config ESLint + Prettier + TS","Configurar linting y formato consistente en todos los workspaces",Todo,Medium,Epic 1 - Fundación
+"1.7 Variables de entorno","Crear .env con DATABASE_URL, BETTER_AUTH_SECRET, API keys de AI, etc.",Todo,Medium,Epic 1 - Fundación
+"","",Todo,Medium,
+"🔐 Epic 2: Autenticación","Registro, login, Google OAuth, sesiones JWT con BetterAuth",Todo,Urgent,Epic 2 - Autenticación
+"2.1 Módulo BetterAuth backend","Configurar BetterAuth en NestJS con PrismaAdapter. Email/password + Google OAuth. Sesiones de 7 días",Todo,High,Epic 2 - Autenticación
+"2.2 Endpoints de auth","POST /auth/register, POST /auth/login, POST /auth/logout, GET /auth/me, POST /auth/google",Todo,High,Epic 2 - Autenticación
+"2.3 AuthGuard","Guard de NestJS que valida token Bearer y adjunta user al request",Todo,High,Epic 2 - Autenticación
+"2.4 Páginas de login y register","UI con shadcn/ui. AuthForm compartido. Manejo de errores y loading states",Todo,High,Epic 2 - Autenticación
+"2.5 SessionProvider frontend","Contexto React con useSession() hook. Login, register, logout, refreshUser",Todo,High,Epic 2 - Autenticación
+"2.6 AuthClient HTTP","Cliente fetch que maneja sessionToken en localStorage y header Authorization",Todo,High,Epic 2 - Autenticación
+"2.7 Dashboard layout protegido","Layout que verifica sesión y redirige a /login si no autenticado",Todo,High,Epic 2 - Autenticación
+"2.8 Password reset flow","⚠️ NUEVO — Endpoint POST /auth/forgot-password + POST /auth/reset-password. UI de solicitud y cambio de contraseña",Todo,High,Epic 2 - Autenticación
+"","",Todo,Medium,
+"📦 Epic 3: Catálogo de Productos","CRUD de productos, importación CSV, sincronización externa",Todo,High,Epic 3 - Productos
+"3.1 Módulo Products en NestJS","ProductsModule con CRUD: GET/POST /products, PUT/DELETE /products/:id. Zod DTOs",Todo,High,Epic 3 - Productos
+"3.2 Verificación de ownership","Cada query verifica userId. findFirst({ where: { id, userId } }) — un usuario no ve productos de otro",Todo,High,Epic 3 - Productos
+"3.3 ApiKeyGuard","Guard para sync externo. Valida API key por header. POST /products/sync con upsert por SKU",Todo,High,Epic 3 - Productos
+"3.4 Import CSV","POST /products/import/csv con FileInterceptor. Parseo, validación por fila, errores detallados",Todo,Medium,Epic 3 - Productos
+"3.5 ProductClient frontend","Cliente HTTP con métodos list, create, update, delete, importCsv",Todo,Medium,Epic 3 - Productos
+"3.6 Página de productos (dashboard)","Tabla paginada con filtro por categoría y búsqueda. Estados loading/empty/error",Todo,Medium,Epic 3 - Productos
+"","",Todo,Medium,
+"🤖 Epic 4: Generación de Artículos + SEO","⬅️ CORAZÓN DEL NEGOCIO. IA + colas + validación SEO",Todo,Urgent,Epic 4 - Artículos
+"4.1 Interface IAiProvider","Abstract class con generateArticle(context). Output: title, metaTitle, metaDescription, slug, H2/H3 sections, CTA",Todo,High,Epic 4 - Artículos
+"4.2 DeepSeek provider","Implementación usando OpenAI SDK (compatible con DeepSeek API). Prompt estructurado SEO",Todo,High,Epic 4 - Artículos
+"4.3 Gemini provider alternativo","Implementación con @google/generative-ai. Misma interface, seleccionable por env var",Todo,Medium,Epic 4 - Artículos
+"4.4 Factory pattern para IA","En articles.module.ts: useFactory elige provider según AI_PROVIDER env var. @Inject(AI_PROVIDER) en servicios",Todo,High,Epic 4 - Artículos
+"4.5 BullMQ queue + queue.module","Cola 'article-generation' en Redis. QueueModule @Global() para toda la app",Todo,High,Epic 4 - Artículos
+"4.6 ArticleGenerationProcessor","Worker BullMQ: recibe job → IA provider → SEO validator → guarda draft → marca completado. Manejo de errores",Todo,High,Epic 4 - Artículos
+"4.7 SEO Validator","SeoValidator: score 0-100. Valida meta title (50-60 chars), meta desc (150-160), heading hierarchy (1 H1, H2s), keyword placement, slug generation",Todo,High,Epic 4 - Artículos
+"4.8 Artículos CRUD endpoints","GET /articles, GET /articles/:id, PUT /articles/:id, POST /articles/generate/:productId, POST /articles/:id/approve",Todo,High,Epic 4 - Artículos
+"4.9 UI de artículos","Lista con filtros por estado. Página de detalle con vista previa, edición, aprobación",Todo,Medium,Epic 4 - Artículos
+"4.10 UI de generación","Botón 'Generar artículo' desde producto. Polling de estado. Draft visible al completar",Todo,Medium,Epic 4 - Artículos
+"","",Todo,Medium,
+"🔗 Epic 5: Integración con Blogs","WordPress + Ghost: conectar, probar, publicar",Todo,High,Epic 5 - Blogs
+"5.1 Interface IBlogConnector","Abstract class con publish(context, config) y testConnection(config). PublishResult y TestResult",Todo,High,Epic 5 - Blogs
+"5.2 WordPress connector","REST API /wp/v2/posts con Basic Auth. Soporte para Yoast meta. Publish como draft o publicado",Todo,High,Epic 5 - Blogs
+"5.3 Ghost connector","Admin API /ghost/api/admin/posts/ con API key. Draft o publish",Todo,High,Epic 5 - Blogs
+"5.4 Módulo Blogs","CRUD de BlogConnection. POST /blogs/connect, POST /blogs/:id/test, POST /articles/:id/publish",Todo,High,Epic 5 - Blogs
+"5.5 UI de conexiones","Formulario para añadir WordPress/Ghost. Botón 'Test connection'. Lista de conexiones activas",Todo,Medium,Epic 5 - Blogs
+"5.6 UI de publicación","En vista de artículo: botón 'Publicar en blog'. Selector de conexión. Estado draft/publish",Todo,Medium,Epic 5 - Blogs
+"","",Todo,Medium,
+"💳 Epic 6: Suscripciones y Pagos","Planes, Binance Pay, límites",Todo,High,Epic 6 - Suscripciones
+"6.1 Interface IPaymentProvider","Abstract class: createCheckout, handleWebhook, cancelSubscription. + PLAN_CONFIG con precios y límites",Todo,High,Epic 6 - Suscripciones
+"6.2 BinancePay provider","Implementación: createCheckout(plan, userId), handleWebhook con verificación de firma",Todo,High,Epic 6 - Suscripciones
+"6.3 Módulo Subscription","CRUD de suscripciones. POST /subscription/create, POST /subscription/cancel, POST /subscription/webhook",Todo,High,Epic 6 - Suscripciones
+"6.4 Plan limits enforcement","checkArticleLimit() en ArticlesService. Bloquea generación si excede el límite del plan. Mensaje en español",Todo,High,Epic 6 - Suscripciones
+"6.5 Grace period","3 días de gracia si falla el pago antes de degradar a free",Todo,Medium,Epic 6 - Suscripciones
+"6.6 UI de suscripción","Pricing page. Dashboard de suscripción con plan actual y upgrade",Todo,Medium,Epic 6 - Suscripciones
+"6.7 ⚠️ Business $79 tier","NUEVO — Falta el plan intermedio Business a $79/mes. Añadir a PLAN_CONFIG y UI de pricing",Todo,High,Epic 6 - Suscripciones
+"6.8 ⚠️ Monthly auto-charge","NUEVO — Cron job o scheduler para cobro recurrente mensual automático",Todo,High,Epic 6 - Suscripciones
+"6.9 ⚠️ Abandoned checkout timeout","NUEVO — Timeout de 30 min para checkouts de Binance Pay abandonados",Todo,Medium,Epic 6 - Suscripciones
+"","",Todo,Medium,
+"📊 Epic 7: Dashboard y Exportación","Stats, exportación Markdown/HTML/clipboard",Todo,Medium,Epic 7 - Dashboard
+"7.1 Endpoint GET /dashboard/stats","Articles by status, total products, sync connections, last CSV import",Todo,Medium,Epic 7 - Dashboard
+"7.2 Página de dashboard","Cards con counts, stats de productos, últimos artículos",Todo,Medium,Epic 7 - Dashboard
+"7.3 Export Markdown","GET /articles/:id/export/markdown → descarga .md",Todo,Low,Epic 7 - Dashboard
+"7.4 Export HTML","GET /articles/:id/export/html → HTML standalone con CSS embebido",Todo,Low,Epic 7 - Dashboard
+"7.5 Export clipboard","POST /articles/:id/export/clipboard → texto plano",Todo,Low,Epic 7 - Dashboard
+"","",Todo,Medium,
+"🧪 Epic 8: Tests","⚠️ CERO TESTS en la versión actual — esta es tu oportunidad de hacerlo bien desde el inicio",Todo,High,Epic 8 - Tests
+"8.1 Setup test runner","Vitest para backend, Testing Library para frontend. Base de datos de test (Docker PostgreSQL opcional)",Todo,High,Epic 8 - Tests
+"8.2 Unit: SEO validator","Tests para SeoValidator: meta title length, heading hierarchy, keyword detection, slug generation",Todo,High,Epic 8 - Tests
+"8.3 Unit: Zod schemas","Tests de validación: login/register DTOs, create/update product DTOs",Todo,Medium,Epic 8 - Tests
+"8.4 Unit: Slug generator","ensureUniqueSlug, generateSlug con diacríticos, stop words, límite de 80 chars",Todo,Medium,Epic 8 - Tests
+"8.5 Integration: Auth endpoints","Supertest: register → login → getMe → logout. Google OAuth URL",Todo,Medium,Epic 8 - Tests
+"8.6 Integration: Products API","CRUD completo, CSV import, API sync con ApiKeyGuard",Todo,Medium,Epic 8 - Tests
+"8.7 Integration: Article generation","Enqueue job → worker → draft created. SEO validation pipeline",Todo,Medium,Epic 8 - Tests
+"8.8 E2E: Auth flow","Playwright: register → login → redirect to dashboard → logout",Todo,Low,Epic 8 - Tests
+"8.9 E2E: Generate → publish","Playwright: create product → generate article → approve → export",Todo,Low,Epic 8 - Tests
+"","",Todo,Medium,
+"🚀 Epic 9: Post-MVP (Fase 2)","Funcionalidades avanzadas para después del MVP",Todo,Low,Epic 9 - Post-MVP
+"9.1 Content calendar","Programación de artículos: frecuencia, días, horario. Generación automática programada",Todo,Low,Epic 9 - Post-MVP
+"9.2 Keyword research","Sugerencia de keywords relacionadas al producto basado en análisis SERP",Todo,Low,Epic 9 - Post-MVP
+"9.3 SEO on-page scoring avanzado","Score predictivo de rendimiento SEO por artículo",Todo,Low,Epic 9 - Post-MVP
+"9.4 AI-generated images","Hero image + imágenes contextuales para cada artículo (DALL-E, Stable Diffusion)",Todo,Low,Epic 9 - Post-MVP
+"9.5 Article variants","Mismo producto, diferentes ángulos: review, comparativa, guía de compra, top 10",Todo,Low,Epic 9 - Post-MVP
+"9.6 Multi-blog","Un cliente conecta varios blogs/sitios desde una cuenta",Todo,Low,Epic 9 - Post-MVP
