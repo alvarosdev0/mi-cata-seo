@@ -8,6 +8,7 @@
     "lint": "turbo lint"
   },
   "devDependencies": {
+    "prisma": "^7.8.0",
     "turbo": "^2.10.5"
   }
 }
