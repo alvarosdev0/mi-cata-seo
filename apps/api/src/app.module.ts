@@ -9,6 +9,7 @@ import { auth } from './auth';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProductsModule } from './products/products.module';
 import { ArticlesModule } from './articles/articles.module';
+import { QueueModule } from './queue/queue.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ArticlesModule } from './articles/articles.module';
     PrismaModule,
     ProductsModule,
     ArticlesModule,
+    QueueModule,
   ],
   controllers: [AppController],
   providers: [
