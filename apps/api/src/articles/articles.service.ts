@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateArticleDto } from './dto/create-article.dto';
@@ -82,12 +82,12 @@ export class ArticlesService {
 
   async findOne(userId: string, id: string) {
     const article = await this.prisma.article.findFirst({ where: { id, userId } });
-    return article ? plainToInstance(ArticleResponseDto, article) : null;
+    if (!article) throw new NotFoundException('Artículo no encontrado.');
+    return plainToInstance(ArticleResponseDto, article);
   }
 
   async update(userId: string, id: string, data: UpdateArticleDto) {
-    const article = await this.findOne(userId, id);
-    if (!article) return null;
+    await this.findOne(userId, id);
 
     const updateData: Record<string, unknown> = { ...data };
 
@@ -105,8 +105,7 @@ export class ArticlesService {
   }
 
   async remove(userId: string, id: string) {
-    const article = await this.findOne(userId, id);
-    if (!article) return null;
+    await this.findOne(userId, id);
     const deleted = await this.prisma.article.delete({ where: { id } });
     return plainToInstance(ArticleResponseDto, deleted);
   }

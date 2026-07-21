@@ -4,7 +4,7 @@ config({ path: resolve(__dirname, '../../../.env') });
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { PrismaExceptionFilter } from './common/prisma-exception.filter';
+import { AllExceptionsFilter } from './common/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -21,7 +21,7 @@ async function bootstrap() {
     excludeExtraneousValues: true,
   }));
 
-  app.useGlobalFilters(new PrismaExceptionFilter());
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   await app.listen(process.env.PORT ?? 3000);
 }

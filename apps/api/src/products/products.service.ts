@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -47,19 +47,18 @@ export class ProductsService {
 
   async findOne(userId: string, id: string) {
     const product = await this.prisma.product.findFirst({ where: { id, userId } });
-    return product ? plainToInstance(ProductResponseDto, product) : null;
+    if (!product) throw new NotFoundException('Producto no encontrado.');
+    return plainToInstance(ProductResponseDto, product);
   }
 
   async update(userId: string, id: string, data: UpdateProductDto) {
-    const product = await this.findOne(userId, id);
-    if (!product) return null;
+    await this.findOne(userId, id);
     const updated = await this.prisma.product.update({ where: { id }, data });
     return plainToInstance(ProductResponseDto, updated);
   }
 
   async remove(userId: string, id: string) {
-    const product = await this.findOne(userId, id);
-    if (!product) return null;
+    await this.findOne(userId, id);
     const deleted = await this.prisma.product.delete({ where: { id } });
     return plainToInstance(ProductResponseDto, deleted);
   }
