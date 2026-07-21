@@ -1,29 +1,34 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { Worker } from 'bullmq';
 import IORedis from 'ioredis';
+import { IAiProvider } from '../ai/interfaces/ai-provider.interface';
+import { AiModule } from '../ai/ai.module';
 
 @Injectable()
 export class ArticleGeneratorProcessor {
   private readonly logger = new Logger(ArticleGeneratorProcessor.name);
   private worker: Worker;
 
-  constructor() {
+  constructor(@Inject(AiModule.providerToken) private aiProvider: IAiProvider) {
     const connection = new IORedis({ host: 'localhost', port: 6379, maxRetriesPerRequest: null });
     this.worker = new Worker(
       'article-generation',
       async (job) => {
-        const { productId, userId } = job.data;
-        this.logger.log(`Procesando job ${job.id}: producto=${productId}`);
+        const { productId, userId, keywords, productName, productDescription } = job.data;
+        this.logger.log(`Generando articulo para producto ${productId}`);
 
-        // TODO: CATA-4 — IAiProvider.generateArticle()
-        // TODO: CATA-5 — SEO Validator
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const article = await this.aiProvider.generateArticle({
+          productName: productName || 'Producto',
+          productDescription,
+          keywords: keywords || [],
+        });
 
-        this.logger.log(`Job ${job.id} completado`);
+        // TODO: guardar en DB y ejecutar SEO Validator
+        this.logger.log(`Articulo generado: "${article.title}"`);
       },
       { connection },
     );
 
-    this.logger.log('Worker article-generation iniciado');
+    this.logger.log('Worker article-generation iniciado con IA');
   }
 }
