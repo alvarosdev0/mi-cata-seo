@@ -1,22 +1,24 @@
 import { Injectable } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
+import { ProductResponseDto, PaginatedProductsDto } from './dto/product-response.dto';
 
 @Injectable()
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, data: CreateProductDto) {
-    return this.prisma.product.create({
+    const product = await this.prisma.product.create({
       data: { ...data, userId },
     });
+    return plainToInstance(ProductResponseDto, product);
   }
 
   async findAll(userId: string, query?: QueryProductDto) {
-    const page = query?.page || 1;
-    const limit = 10;
+    const take = query?.take || 10;
     const where: Record<string, unknown> = { userId };
 
     if (query?.search) {
@@ -26,32 +28,39 @@ export class ProductsService {
       where.category = query.category;
     }
 
-    const [products, total] = await Promise.all([
-      this.prisma.product.findMany({
-        where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.product.count({ where }),
-    ]);
+    const products = await this.prisma.product.findMany({
+      where,
+      take: take + 1,
+      ...(query?.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+      orderBy: { createdAt: 'desc' },
+    });
 
-    return { products, total, page, totalPages: Math.ceil(total / limit) };
+    const hasMore = products.length > take;
+    if (hasMore) products.pop();
+
+    return plainToInstance(PaginatedProductsDto, {
+      products: products.map((p) => plainToInstance(ProductResponseDto, p)),
+      nextCursor: hasMore ? products[products.length - 1].id : null,
+      hasMore,
+    });
   }
 
   async findOne(userId: string, id: string) {
-    return this.prisma.product.findFirst({ where: { id, userId } });
+    const product = await this.prisma.product.findFirst({ where: { id, userId } });
+    return product ? plainToInstance(ProductResponseDto, product) : null;
   }
 
   async update(userId: string, id: string, data: UpdateProductDto) {
     const product = await this.findOne(userId, id);
     if (!product) return null;
-    return this.prisma.product.update({ where: { id }, data });
+    const updated = await this.prisma.product.update({ where: { id }, data });
+    return plainToInstance(ProductResponseDto, updated);
   }
 
   async remove(userId: string, id: string) {
     const product = await this.findOne(userId, id);
     if (!product) return null;
-    return this.prisma.product.delete({ where: { id } });
+    const deleted = await this.prisma.product.delete({ where: { id } });
+    return plainToInstance(ProductResponseDto, deleted);
   }
 }

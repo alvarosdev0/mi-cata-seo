@@ -2,11 +2,15 @@ import { IsString, IsOptional, IsNumber, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class QueryProductDto {
+  @IsString()
+  @IsOptional()
+  cursor?: string;
+
   @IsNumber()
   @Min(1)
   @IsOptional()
   @Type(() => Number)
-  page?: number;
+  take?: number;
 
   @IsString()
   @IsOptional()
@@ -15,8 +19,4 @@ export class QueryProductDto {
   @IsString()
   @IsOptional()
   category?: string;
-
-  @IsString()
-  @IsOptional()
-  userId?: string;
 }
