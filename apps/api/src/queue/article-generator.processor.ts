@@ -22,7 +22,7 @@ export class ArticleGeneratorProcessor {
       'article-generation',
       async (job) => {
         const { productId, userId, keywords } = job.data;
-        this.logger.log(`Generando articulo para producto ${productId}`);
+        this.logger.log(`[Intento ${(job.attemptsMade || 0) + 1}/3] Generando articulo para producto ${productId}`);
 
         const product = await this.prisma.product.findFirst({ where: { id: productId } });
         if (!product) throw new Error(`Producto ${productId} no encontrado`);
@@ -39,6 +39,7 @@ export class ArticleGeneratorProcessor {
           metaTitle: generated.metaTitle,
           metaDescription: generated.metaDescription,
           keywords: generated.keywords,
+          hasSchemaJsonLd: true,
         });
 
         const factCheck = await this.aiProvider.verifyClaims(generated.content);
