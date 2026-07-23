@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
-import { IAiProvider, ArticleGenerationContext, GeneratedArticle } from '../interfaces/ai-provider.interface';
+import { IAiProvider, ArticleGenerationContext, GeneratedArticle, FactCheckResult } from '../interfaces/ai-provider.interface';
 
 @Injectable()
 export class DeepSeekProvider implements IAiProvider {
@@ -48,6 +48,34 @@ META_TITLE: ...
 META_DESCRIPTION: ...
 CONTENIDO:
 ...`;
+  }
+
+  async verifyClaims(content: string): Promise<FactCheckResult> {
+    const prompt = `Analiza este articulo y extrae afirmaciones que necesitan verificacion.
+
+Clasifica cada afirmacion como:
+- statistic: datos numericos o porcentajes
+- date: fechas o eventos historicos
+- attribution: citas o referencias a fuentes
+- definition: conceptos presentados como hechos
+
+Para cada afirmacion indica si es verificable o no y sugiere una fuente.
+
+Formato (JSON):
+{"claims":[{"statement":"...","type":"statistic","verified":false,"suggestion":"Buscar fuente en..."}]}
+
+Articulo:
+${content}
+
+Responde SOLO con el JSON, sin explicaciones.`;
+
+    const response = await this.client.chat.completions.create({
+      model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const text = response.choices[0]?.message?.content || '{"claims":[]}';
+    const json = JSON.parse(text.replace(/```json|```/g, '').trim());
+    return { hasIssues: json.claims?.some((c: any) => !c.verified) || false, claims: json.claims || [] };
   }
 
   private parseResponse(raw: string): GeneratedArticle {
